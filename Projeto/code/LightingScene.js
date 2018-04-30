@@ -52,6 +52,24 @@ class LightingScene extends CGFscene {
         this.lights[0].setSpecular(1.0, 1.0, 1.0, 1.0);
 
         this.lights[0].enable();
+
+
+        this.lights[1].setPosition(25, 50, 50, 1.0);
+        this.lights[1].setVisible(true);
+        this.lights[1].setAmbient(1, 0.8, 0.8, 0.8);
+        this.lights[1].setDiffuse(0.8, 0.8, 0.8, 1.0);
+        this.lights[1].setSpecular(1.0, 1.0, 1.0, 1.0);
+
+        this.lights[1].enable();
+
+
+        this.lights[2].setPosition(50, 50, 0, 1.0);
+        this.lights[2].setVisible(true);
+        this.lights[2].setAmbient(1, 0.8, 0.8, 0.8);
+        this.lights[2].setDiffuse(0.8, 0.8, 0.8, 1.0);
+        this.lights[2].setSpecular(1.0, 1.0, 1.0, 1.0);
+
+        //this.lights[2].enable();
     };
 
     updateLights() {
