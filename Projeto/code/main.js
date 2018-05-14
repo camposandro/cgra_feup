@@ -15,6 +15,10 @@ serialInclude([
 	'MySky.js',
 	'MyVehicle.js',
 	'MyWheel.js',
+	'MyHeadlight.js',
+	'MyRearlight.js',
+	'MyGrill.js',
+	'MyPlate.js',
 
 	main=function() {
 		var app = new CGFapplication(document.body);

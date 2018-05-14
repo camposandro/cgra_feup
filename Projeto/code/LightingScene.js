@@ -69,7 +69,7 @@ class LightingScene extends CGFscene {
         this.lights[2].setDiffuse(0.8, 0.8, 0.8, 1.0);
         this.lights[2].setSpecular(1.0, 1.0, 1.0, 1.0);
 
-        //this.lights[2].enable();
+        this.lights[2].enable();
     };
 
     updateLights() {
@@ -108,7 +108,11 @@ class LightingScene extends CGFscene {
         this.sky.display();
 
         // Vehicle
+
+        
+       // this.scale(0.9, 0.9, 0.9);
         this.vehicle.display();
+
      
         // ---- END Scene drawing section
     };
