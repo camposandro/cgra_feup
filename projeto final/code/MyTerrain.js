@@ -5,14 +5,15 @@
 
 class MyTerrain extends CGFobject {
 
-    constructor(scene, width, height)
+    constructor(scene, width, height, altimetry)
     {
         super(scene);
 
         this.width = width;
         this.height = height;
-        
-        this.terrain = new MyQuad(scene, 0, 10, 0, 12);
+        this.altimetry = altimetry;
+                
+        this.terrain = new Plane(scene, altimetry.length - 1, 0, 15, 0, 15, altimetry);
     };
 
     display()
@@ -24,7 +25,7 @@ class MyTerrain extends CGFobject {
         
         this.scene.translate(this.width / 2, 0, this.width / 2);
         this.scene.rotate(-90 * degToRad, 1, 0, 0);
-        this.scene.scale(this.width, this.height, 0.2);
+        this.scene.scale(this.width, this.height, 1);
 
         this.scene.terrainAppearances[this.currTerrainAppearance].apply();
         this.terrain.display();

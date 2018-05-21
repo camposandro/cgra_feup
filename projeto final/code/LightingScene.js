@@ -1,4 +1,6 @@
 var degToRad = Math.PI / 180.0;
+var TERRAIN_WIDTH = 50;
+var TERRAIN_HEIGHT = 50;
 
 class LightingScene extends CGFscene {
 
@@ -13,6 +15,7 @@ class LightingScene extends CGFscene {
         this.initLights();
         this.enableTextures(true);
 
+        //this.gl.clearColor(0.529, 0.808, 0.922, 1.0);
         this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
         this.gl.clearDepth(100.0);
         this.gl.enable(this.gl.DEPTH_TEST);
@@ -23,7 +26,20 @@ class LightingScene extends CGFscene {
 
         // Scene elements
         this.sky = new MySky(this, 50, 20);
-        this.terrain = new MyTerrain(this, 50, 50);
+        
+        this.altimetry = [
+            [ 2.0 , 3.0 , 2.0, 4.0, 2.5, 2.4, 2.3, 1.3, 1.3 ],
+            [ 2.0 , 3.0 , 2.0, 4.0, 7.5, 6.4, 4.3, 1.3, 1.3 ],
+            [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+            [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+            [ 0.0 , 0.0 , 2.0, 4.0, 2.5, 2.4, 0.0, 0.0, 0.0 ],
+            [ 0.0 , 0.0 , 2.0, 4.0, 3.5, 2.4, 0.0, 0.0, 0.0 ],
+            [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+            [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
+            [ 2.0 , 3.0 , 2.0, 1.0, 2.5, 2.4, 2.3, 1.3, 1.3 ]
+        ];
+        this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, this.altimetry);
+
         this.vehicle = new MyVehicle(this);
 
         // Materials
@@ -208,7 +224,7 @@ class LightingScene extends CGFscene {
         if (this.gui.isKeyPressed("KeyA"))
         {
             dirPressed = true;
-            this.vehicle.ang += this.speed * 4;
+            this.vehicle.ang += this.speed * 2;
             this.vehicle.ang %= 360;
         }
 
@@ -221,7 +237,7 @@ class LightingScene extends CGFscene {
         if (this.gui.isKeyPressed("KeyD"))
         {
             dirPressed = true;
-            this.vehicle.ang -= this.speed * 4;
+            this.vehicle.ang -= this.speed * 2;
             this.vehicle.ang %= 360;
         }
 

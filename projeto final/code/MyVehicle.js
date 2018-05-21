@@ -9,14 +9,7 @@
     {
         super(scene);
        
-        this.vel = 0;                       // velocity
-        this.ang = 0;                       // angle of rotation
-        this.turning = false;               // car turning condition variable      
-        this.initPos = new Array(5,5);      // car's initial position
-        this.limitPos = new Array(45,45);   // map's limit position
-        this.pos = new Array(3,3);          // car's front wheels initial position
-
-        // car parts
+        // car parts & windows appearance
         this.rearlight = new MyRearlight(scene);
         this.headlight = new MyHeadlight(scene);
         this.wheel = new MyWheel(scene);
@@ -41,11 +34,59 @@
         this.plate = new MyPlate(scene);
         this.triangwindow = new MyCircle(scene, 3);
 
-        this.bumperAppearance = new CGFappearance(scene);
-        this.bumperAppearance.loadTexture("../resources/images/gray.jpg");
-
         this.windowAppearance = new CGFappearance(scene);
         this.windowAppearance.setAmbient(70 / 255, 71 / 255, 73 / 255, 1);
+
+        this.vel = 0;                       // velocity
+        this.ang = 0;                       // angle of rotation
+        this.turning = false;               // car turning condition variable   
+
+        /* car's initial & limit positions
+        var altimetry = scene.altimetry; 
+        var firstFound = false, posX, posZ;
+
+        for (var i = 0; i < altimetry.length; i++) {
+                for (var j = 0; j < altimetry[0].length; j++) {
+                        if (altimetry[i][j] == 0) {
+                                if (firstFound) {
+                                        posX = i * Math.floor(50 / 8);
+                                        posZ = j * Math.floor(50 / 8);
+                                        this.limitPos = new Array(posX, posZ);
+                                }  
+                                else {
+                                        posX = i * Math.ceil(50 / 8);
+                                        posZ = j * Math.ceil(50 / 8);
+                                        this.initPos = new Array(posX, posZ);
+                                        firstFound = true;
+                                }
+                        } 
+                }
+        }*/
+
+        var altimetry = scene.altimetry;
+        var altimetryWidth = altimetry.length - 1;
+        var altimetryHeight = altimetry[0].length - 1;
+
+        var found = false, posX, posZ;
+        for (var i = 0; i < altimetryWidth; i++) {
+               for (var j = 0; j < altimetryHeight; j++) {
+                       if (altimetry[i][j] == 0) {
+                               posX = i * Math.ceil(TERRAIN_WIDTH / altimetryWidth);
+                               posZ = j * Math.ceil(TERRAIN_HEIGHT / altimetryHeight);
+                               
+                               this.initialPos = new Array(posX, 3 + posZ);
+                               found = true;
+                               break;
+                        }
+                }
+                if (found) break;
+        }
+
+        // car's initial position
+        this.pos = new Array(this.initialPos[0], this.initialPos[1]);  
+
+        // map's limit position
+        this.limitPos = new Array(45,45); 
     }
 
     display()
@@ -59,7 +100,7 @@
 
         // updating vehicle position
         this.scene.translate(this.pos[0], 0, this.pos[1]);
-        
+ 
         // updating vehicle orientation
         this.scene.rotate(this.ang * Math.PI / 180, 0, 1, 0);
         this.scene.translate(-2.5, 0, -1.5);
@@ -222,7 +263,6 @@
         this.scene.pushMatrix();
         this.scene.translate(3, 1, 1.5);
         this.scene.scale(4.9, 1, 1.8);
-        this.bumperAppearance.apply();
         this.body.display();
         this.scene.materialDefault.apply();
         this.scene.popMatrix();
@@ -232,7 +272,6 @@
         this.scene.pushMatrix();
         this.scene.translate(5.9, 0.6, 1.5);
         this.scene.scale(0.4, 0.3, 2.7);
-        this.bumperAppearance.apply();
         this.bumper.display();
         this.scene.popMatrix();
 
@@ -507,33 +546,49 @@
     update(interval)
     {
         var time = interval / 1000;
-        var angle = degToRad * this.ang
-        
-        // update vehicle's x pos              
-        this.pos[0] += this.vel * Math.cos(angle);
+        var angle = degToRad * this.ang;
 
-        if (this.pos[0] < this.initPos[0]) {
-            this.pos[0] = this.initPos[0];
-            this.vel = 0;
-        }
-        else if (this.pos[0] > this.limitPos[0]) {
-            this.pos[0] = this.limitPos[0];
-            this.vel = 0;
-        }
+        var deltaX = this.vel * Math.cos(angle);
 
-        // update vehicle's z pos
         angle %= 90;
         angle = -angle;
 
-        this.pos[1] += this.vel * Math.sin(angle);
+        var deltaZ = this.vel * Math.sin(angle);
+
+        // verifying collisions
+        var nrDivWidth = this.scene.altimetry.length;
+        var nrDivHeight = this.scene.altimetry[0].length;
+
+        var indX = Math.floor(this.pos[0] / TERRAIN_WIDTH * nrDivWidth);
+        if (deltaX < 0) indX--;
+        else if (deltaX > 0) indX++;
         
-        if (this.pos[1] < this.initPos[1]) {
-            this.pos[1] = this.initPos[1];
-            this.vel = 0;
-        }
-        else if (this.pos[1] > this.limitPos[1]) {
-            this.pos[1] = this.limitPos[1];
-            this.vel = 0;
+        var indZ = Math.floor(this.pos[1] / TERRAIN_HEIGHT * nrDivHeight);
+        if (deltaZ < 0) indZ--;
+        else if (deltaZ > 0) indZ++;
+
+        if (indX < 0) indX = 0;
+        else if (indX > nrDivWidth) indX = nrDivWidth;
+        if (indZ < 0) indZ = 0;
+        else if (indZ > nrDivHeight) indZ = nrDivHeight;
+
+        console.log(indX + "|" + indZ);
+
+        if (this.scene.altimetry[indX][indZ] > 0) {
+                console.log("collision\n");
+                this.vel = 0;
+        } else {                
+                // update vehicle's x pos              
+                this.pos[0] += deltaX;
+
+                if(this.pos[0] > this.limitPos[0])
+                        this.pos[0] = this.limitPos[0];
+
+                // update vehicle's z pos
+                this.pos[1] += deltaZ;
+
+                if(this.pos[1] > this.limitPos[1])
+                        this.pos[1] = this.limitPos[1];
         }
 
         console.log("vel = " + this.vel);
