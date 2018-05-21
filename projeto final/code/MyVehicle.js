@@ -90,7 +90,9 @@
     }
 
     display()
-    {
+    {   
+        this.scene.pushMatrix();
+            
         // update vehicle appearance
         this.currVehicleAppearance = this.scene.vehicleAppearancesList[this.scene.vehicleAppearance];
         
@@ -541,6 +543,9 @@
         this.window.display();
         this.scene.popMatrix();
         this.scene.materialDefault.apply();
+
+
+       this.scene.popMatrix();
     };  
 
     update(interval)

@@ -42,6 +42,8 @@ class LightingScene extends CGFscene {
 
         this.vehicle = new MyVehicle(this);
 
+        this.crane = new MyCrane(this);
+
         // Materials
         this.materialDefault = new CGFappearance(this);
 
@@ -187,7 +189,11 @@ class LightingScene extends CGFscene {
         this.sky.display();
 
         // Vehicle
+      
         this.vehicle.display();
+       
+        // Crane
+        this.crane.display();
      
         // ---- END Scene drawing section
     };
