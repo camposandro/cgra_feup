@@ -15,8 +15,7 @@ class LightingScene extends CGFscene {
         this.initLights();
         this.enableTextures(true);
 
-        //this.gl.clearColor(0.529, 0.808, 0.922, 1.0);
-        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.gl.clearColor(0.529, 0.808, 0.922, 1.0);
         this.gl.clearDepth(100.0);
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.enable(this.gl.CULL_FACE);
@@ -25,8 +24,6 @@ class LightingScene extends CGFscene {
         this.myAxis = new CGFaxis(this);
 
         // Scene elements
-        this.sky = new MySky(this, 50, 20);
-        
         this.altimetry = [
             [ 2.0 , 3.0 , 2.0, 4.0, 2.5, 2.4, 2.3, 1.3, 1.3 ],
             [ 2.0 , 3.0 , 2.0, 4.0, 7.5, 6.4, 4.3, 1.3, 1.3 ],
@@ -38,7 +35,7 @@ class LightingScene extends CGFscene {
             [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
             [ 2.0 , 3.0 , 2.0, 1.0, 2.5, 2.4, 2.3, 1.3, 1.3 ]
         ];
-        this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, this.altimetry);
+        this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, this.altimetry.length - 1, this.altimetry);
 
         this.vehicle = new MyVehicle(this);
 
@@ -46,10 +43,8 @@ class LightingScene extends CGFscene {
 
         // Materials
         this.materialDefault = new CGFappearance(this);
-
-        // Sky texture
-        this.skyAppearance = new CGFappearance(this);
-        this.skyAppearance.setAmbient(52.9 / 100, 80.8 / 100, 92.2 / 100, 1);
+        this.materialDefault.setDiffuse(0.5, 0.5, 0.5);
+        this.materialDefault.setSpecular(0.5, 0.5, 0.5);
 
         // Terrain-related textures
         this.asphaltAppearance = new CGFappearance(this);
@@ -85,38 +80,49 @@ class LightingScene extends CGFscene {
         // Car-related textures        
         this.blackAppearance = new CGFappearance(this);
         this.blackAppearance.setAmbient(0, 0, 0);
-        this.blackAppearance.setDiffuse(0.2, 0.2, 0.2);
+        this.blackAppearance.setDiffuse(0.3, 0.3, 0.3);
         this.blackAppearance.setSpecular(0, 0, 0);
 
+        this.brownAppearance = new CGFappearance(this);
+        this.brownAppearance.setAmbient(0, 0, 0);
+        this.brownAppearance.setDiffuse(0.6, 0.3, 0.1);
+        this.brownAppearance.setSpecular(0.5, 0.5, 0.5);
+
         this.blueAppearance = new CGFappearance(this);
-        this.blueAppearance.setAmbient(25 / 255, 25 / 255, 112 / 255);
-        this.blueAppearance.setDiffuse(0.3, 0.3, 0.3);
+        this.blueAppearance.setAmbient(0,0,0);
+        this.blueAppearance.setDiffuse(0.1, 0.1, 0.4);
         this.blueAppearance.setSpecular(0.5, 0.5, 0.5);
 
         this.camouflageAppearance = new CGFappearance(this);
         this.camouflageAppearance.loadTexture("../resources/images/camouflage.png");
 
-        this.vehicleAppearances = [
-            null,
+        this.appearances = [
+            this.materialDefault,
             this.blackAppearance,
+            this.brownAppearance,
             this.blueAppearance,
             this.camouflageAppearance
         ];
-        this.vehicleAppearancesList = {
+        this.appearancesList = {
             'white': 0,
             'black': 1,
-            'blue': 2,
-            'camouflage': 3,
+            'brown': 2,
+            'blue': 3,
+            'camouflage': 4,
         };
+        
         this.vehicleAppearance = 'white';
+
+        this.craneAppearance = 'white';
 
         this.light1 = true;
         this.light2 = true;
         this.axis = true;
         this.speed = 3;
+        this.collisions = false;
 
         this.oldTime = 0;
-        this.setUpdatePeriod(100);
+        this.setUpdatePeriod(20);
     };
 
     initCameras() {
@@ -176,7 +182,8 @@ class LightingScene extends CGFscene {
         this.updateLights();
 
         // Draw axis
-        if (this.axis) this.myAxis.display();
+        if (this.axis) 
+            this.myAxis.display();
 
         // ---- END Background, camera and axis setup
 
@@ -185,17 +192,19 @@ class LightingScene extends CGFscene {
         // Terrain
         this.terrain.display();
 
-        // Sky
-        this.sky.display();
-
         // Vehicle
-      
-        this.vehicle.display();
-       
+        if (!this.crane.hasCar) {            
+            this.vehicle.display();
+        }
+
         // Crane
         this.crane.display();
      
         // ---- END Scene drawing section
+    };
+
+    Menu() {
+        console.log("On menu ...\n");
     };
 
     update(currentTime)
@@ -208,16 +217,11 @@ class LightingScene extends CGFscene {
             var interval = currentTime - this.oldTime;
             this.oldTime = currentTime;
             this.vehicle.update(interval);
+            this.crane.update(interval);
         }        
     };
 
-    Menu()
-    {
-        console.log("On menu ...\n");
-    };
-
-    checkKeys()
-    {
+    checkKeys() {
         var movePressed = false;
         var dirPressed = false;
 
@@ -232,6 +236,8 @@ class LightingScene extends CGFscene {
             dirPressed = true;
             this.vehicle.ang += this.speed * 2;
             this.vehicle.ang %= 360;
+
+            this.vehicle.angWheels += this.speed * 2;
         }
 
         if (this.gui.isKeyPressed("KeyS"))
@@ -245,13 +251,10 @@ class LightingScene extends CGFscene {
             dirPressed = true;
             this.vehicle.ang -= this.speed * 2;
             this.vehicle.ang %= 360;
-        }
 
-        if (dirPressed)
-            this.vehicle.turning = true;
-        else 
-            this.vehicle.turning = false;
-            
+            this.vehicle.angWheels -= this.speed * 2;
+        }
+   
         if (!movePressed) {
             if (this.vehicle.vel > 0) {
                 this.vehicle.vel -= this.speed / 100;
@@ -263,6 +266,22 @@ class LightingScene extends CGFscene {
                  if (this.vehicle.vel > 0) 
                     this.vehicle.vel = 0;
             }
+        }
+
+        if (!dirPressed) {
+            var angRot = this.speed * 4;
+            if (this.vehicle.angWheels < 0) {
+                if (this.vehicle.angWheels + angRot > 0)
+                    this.vehicle.angWheels = 0;
+                else
+                    this.vehicle.angWheels += this.speed * 4;
+            }          
+             else if (this.vehicle.angWheels > 0) {
+                 if (this.vehicle.angWheels + angRot < 0)
+                    this.vehicle.angWheels = 0;
+                 else
+                    this.vehicle.angWheels -= this.speed * 4; 
+             }         
         }
     };
 };

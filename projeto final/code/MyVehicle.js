@@ -37,56 +37,35 @@
         this.windowAppearance = new CGFappearance(scene);
         this.windowAppearance.setAmbient(70 / 255, 71 / 255, 73 / 255, 1);
 
-        this.vel = 0;                       // velocity
-        this.ang = 0;                       // angle of rotation
-        this.turning = false;               // car turning condition variable   
+        // car's initial position
+        this.pos = this.getInitPos(); 
 
-        /* car's initial & limit positions
-        var altimetry = scene.altimetry; 
-        var firstFound = false, posX, posZ;
+        // map's limit position
+        this.limitPos = new Array(20, 0, 20);
 
-        for (var i = 0; i < altimetry.length; i++) {
-                for (var j = 0; j < altimetry[0].length; j++) {
-                        if (altimetry[i][j] == 0) {
-                                if (firstFound) {
-                                        posX = i * Math.floor(50 / 8);
-                                        posZ = j * Math.floor(50 / 8);
-                                        this.limitPos = new Array(posX, posZ);
-                                }  
-                                else {
-                                        posX = i * Math.ceil(50 / 8);
-                                        posZ = j * Math.ceil(50 / 8);
-                                        this.initPos = new Array(posX, posZ);
-                                        firstFound = true;
-                                }
-                        } 
-                }
-        }*/
+        this.vel = 0;                       // vehicle velocity
+        this.ang = 0;                       // vehicle angle of rotation
+        this.angWheels = 0;                 // wheels angle of rotation
+    }
 
-        var altimetry = scene.altimetry;
+    getInitPos() {
+        var altimetry = this.scene.altimetry;
         var altimetryWidth = altimetry.length - 1;
         var altimetryHeight = altimetry[0].length - 1;
 
-        var found = false, posX, posZ;
+        var posX, posZ;
+        var found = false;
         for (var i = 0; i < altimetryWidth; i++) {
                for (var j = 0; j < altimetryHeight; j++) {
                        if (altimetry[i][j] == 0) {
                                posX = i * Math.ceil(TERRAIN_WIDTH / altimetryWidth);
+                               posX -= TERRAIN_WIDTH / 2;
                                posZ = j * Math.ceil(TERRAIN_HEIGHT / altimetryHeight);
-                               
-                               this.initialPos = new Array(posX, 3 + posZ);
-                               found = true;
-                               break;
+                               posZ -= TERRAIN_HEIGHT / 2;
+                               return new Array(posX , 0, posZ + 2);
                         }
                 }
-                if (found) break;
         }
-
-        // car's initial position
-        this.pos = new Array(this.initialPos[0], this.initialPos[1]);  
-
-        // map's limit position
-        this.limitPos = new Array(45,45); 
     }
 
     display()
@@ -94,19 +73,19 @@
         this.scene.pushMatrix();
             
         // update vehicle appearance
-        this.currVehicleAppearance = this.scene.vehicleAppearancesList[this.scene.vehicleAppearance];
+        this.currVehicleAppearance = this.scene.appearancesList[this.scene.vehicleAppearance];
         
-        this.bodyAppearance = this.scene.vehicleAppearances[this.currVehicleAppearance];
-        if (this.bodyAppearance == null)
-            this.bodyAppearance = this.scene.materialDefault;
+        this.bodyAppearance = this.scene.appearances[this.currVehicleAppearance];
 
         // updating vehicle position
-        this.scene.translate(this.pos[0], 0, this.pos[1]);
+        this.scene.translate(this.pos[0], this.pos[1], this.pos[2]);
  
+        this.scene.pushMatrix();
+                
         // updating vehicle orientation
         this.scene.rotate(this.ang * Math.PI / 180, 0, 1, 0);
-        this.scene.translate(-2.5, 0, -1.5);
-
+        this.scene.translate(-2,0,-1.5);
+ 
         /*
         comprimento: 5.0
         largura: 2.5
@@ -190,8 +169,7 @@
         this.scene.translate(4.4, 0, 0);
         this.scene.rotate(Math.PI, 1, 0, 0);
 
-        if (this.turning) 
-           this.wheel.setAngle(-this.ang);
+        this.wheel.setAngle(-this.angWheels);
 
         this.wheel.display();
         this.scene.popMatrix();
@@ -199,9 +177,8 @@
         this.scene.pushMatrix();
         this.scene.translate(1/2, 1/2, 1/2);
         this.scene.translate(4.4, 0, 2.0);
-
-        if (this.turning) 
-            this.wheel.setAngle(this.ang);
+        
+        this.wheel.setAngle(this.angWheels);
 
         this.wheel.display();
         this.scene.rotate(Math.PI, 1, 0, 0);
@@ -410,7 +387,6 @@
         this.scene.materialDefault.apply();
         this.scene.popMatrix();
 
-        /*Estas cenas nao pintam*/
         // hood_right
         this.scene.pushMatrix();
         this.scene.translate(4.7, 1.62, 0.7);
@@ -430,7 +406,6 @@
         this.hoodleft.display();
         this.scene.materialDefault.apply();
         this.scene.popMatrix();
-        /* ate aqui */
 
         // hood_left cover
         this.scene.pushMatrix();
@@ -544,9 +519,67 @@
         this.scene.popMatrix();
         this.scene.materialDefault.apply();
 
+        this.scene.popMatrix();
 
-       this.scene.popMatrix();
-    };  
+        this.scene.popMatrix();
+    };
+
+    verifyMapBounds(pos, limitPos) {
+         
+         var inBounds = true;   
+         
+         if(pos[0] > limitPos[0]) {
+               pos[0] = limitPos[0];
+               inBounds = false;  
+         }        
+         else if (pos[0] < -limitPos[0]) {
+                pos[0] = -limitPos[0];
+                inBounds = false; 
+         }
+          
+         if(this.pos[2] > this.limitPos[2]) {
+                 pos[2] = limitPos[2];
+                 inBounds = false; 
+         }     
+         else if (pos[2] < -limitPos[2]) {
+                 pos[2] = -limitPos[2];
+                 inBounds = false;
+         }
+         
+         if (!inBounds) 
+                this.vel = 0;
+    }
+
+    getCollisionIndices(deltaX, deltaZ) {
+        
+        var nrDivWidth = this.scene.altimetry.length;
+        var nrDivHeight = this.scene.altimetry[0].length;
+        
+        var indX = this.pos[0] + TERRAIN_WIDTH / 2;
+        indX = Math.floor(indX / TERRAIN_WIDTH * nrDivWidth);
+        if (deltaX < 0) 
+                indX--;
+        else if (deltaX > 0) 
+                indX++;
+        
+        var indZ = this.pos[2] + TERRAIN_HEIGHT/ 2;
+        indZ = Math.floor(indZ / TERRAIN_HEIGHT * nrDivHeight);
+        if (deltaZ < 0) 
+                indZ--;
+        else if (deltaZ > 0)
+                indZ++;
+
+        if (indX < 0) 
+                indX = 0;
+        else if (indX >= nrDivWidth) 
+                indX = nrDivWidth - 1;
+        if (indZ < 0)
+                indZ = 0;
+        else if (indZ >= nrDivHeight) 
+                indZ = nrDivHeight - 1;
+
+        return Array(indX, indZ);
+    }
 
     update(interval)
     {
@@ -560,43 +593,20 @@
 
         var deltaZ = this.vel * Math.sin(angle);
 
+        var collisionIndices = this.getCollisionIndices(deltaX, deltaZ);
+        var indX = collisionIndices[0], indZ = collisionIndices[1];
+
         // verifying collisions
-        var nrDivWidth = this.scene.altimetry.length;
-        var nrDivHeight = this.scene.altimetry[0].length;
-
-        var indX = Math.floor(this.pos[0] / TERRAIN_WIDTH * nrDivWidth);
-        if (deltaX < 0) indX--;
-        else if (deltaX > 0) indX++;
-        
-        var indZ = Math.floor(this.pos[1] / TERRAIN_HEIGHT * nrDivHeight);
-        if (deltaZ < 0) indZ--;
-        else if (deltaZ > 0) indZ++;
-
-        if (indX < 0) indX = 0;
-        else if (indX > nrDivWidth) indX = nrDivWidth;
-        if (indZ < 0) indZ = 0;
-        else if (indZ > nrDivHeight) indZ = nrDivHeight;
-
-        console.log(indX + "|" + indZ);
-
-        if (this.scene.altimetry[indX][indZ] > 0) {
-                console.log("collision\n");
+        if (this.scene.collisions && this.scene.altimetry[indX][indZ] > 0) {
                 this.vel = 0;
-        } else {                
+        } else {     
                 // update vehicle's x pos              
                 this.pos[0] += deltaX;
 
-                if(this.pos[0] > this.limitPos[0])
-                        this.pos[0] = this.limitPos[0];
-
                 // update vehicle's z pos
-                this.pos[1] += deltaZ;
+                this.pos[2] += deltaZ;
 
-                if(this.pos[1] > this.limitPos[1])
-                        this.pos[1] = this.limitPos[1];
+                this.verifyMapBounds(this.pos, this.limitPos);
         }
-
-        console.log("vel = " + this.vel);
-        console.log("posX = " + this.pos[0] + ", posZ = " + this.pos[1]);
     }
  };
