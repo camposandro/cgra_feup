@@ -37,7 +37,7 @@ class LightingScene extends CGFscene {
             [ 0.0 , 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ],
             [ 2.0 , 3.0 , 3.0, 2.0, 1.0, 2.5, 2.4, 2.4, 2.3, 1.3, 1.3 ]
         ];
-        this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, this.altimetry.length - 1, this.altimetry);
+        this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, 1, 1, this.altimetry.length - 1, this.altimetry);
 
         this.vehicle = new MyVehicle(this);
 
@@ -49,9 +49,12 @@ class LightingScene extends CGFscene {
         this.materialDefault.setSpecular(0.5, 0.5, 0.5);
 
         // Terrain-related textures
+        this.layersAppearance = new CGFappearance(this);
+        this.layersAppearance.loadTexture("../resources/images/layers.png");
+        this.layersAppearance.setTextureWrap('REPEAT','REPEAT');
+
         this.asphaltAppearance = new CGFappearance(this);
         this.asphaltAppearance.loadTexture("../resources/images/asphalt.png");
-        this.asphaltAppearance.setTextureWrap('REPEAT','REPEAT');
 
         this.dirtAppearance = new CGFappearance(this);
         this.dirtAppearance.loadTexture("../resources/images/dirt.png");
@@ -66,18 +69,20 @@ class LightingScene extends CGFscene {
         this.sandAppearance.setTextureWrap('REPEAT','REPEAT');
     
         this.terrainAppearances = [
+            this.layersAppearance,
             this.asphaltAppearance,
             this.dirtAppearance,
             this.grassAppearance,
             this.sandAppearance
         ];
         this.terrainAppearancesList = {
-            'asphalt': 0,
-            'dirt': 1,
-            'grass': 2,
-            'sand': 3
+            'layers': 0,
+            'asphalt': 1,
+            'dirt': 2,
+            'grass': 3,
+            'sand': 4
         };
-        this.terrainAppearance = 'asphalt';
+        this.terrainAppearance = 'layers';
 
         // Car-related textures        
         this.blackAppearance = new CGFappearance(this);
@@ -192,6 +197,11 @@ class LightingScene extends CGFscene {
         // ---- BEGIN Scene drawing section
         
         // Terrain
+        delete this.terrain;
+        if (this.terrainAppearance != 'layers')
+            this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, 15, 15, this.altimetry.length - 1, this.altimetry);
+        else
+            this.terrain = new MyTerrain(this, TERRAIN_WIDTH, TERRAIN_HEIGHT, 1, 1, this.altimetry.length - 1, this.altimetry);
         this.terrain.display();
 
         // Vehicle

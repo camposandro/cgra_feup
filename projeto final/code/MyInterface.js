@@ -53,7 +53,7 @@ class MyInterface extends CGFinterface {
 
 		this.gui.add(this.scene, 'collisions');
 
-		this.gui.add(this.scene, 'terrainAppearance', ['asphalt', 'dirt', 'grass', 'sand']);
+		this.gui.add(this.scene, 'terrainAppearance', ['layers', 'asphalt', 'dirt', 'grass', 'sand']);
 
 		this.gui.add(this.scene, 'vehicleAppearance', ['white', 'black', 'brown', 'blue', 'camouflage']);
 		

@@ -5,9 +5,9 @@
 
 class MyTerrain extends Plane {
 
-    constructor(scene, width, height, nrDiv, altimetry)
+    constructor(scene, width, height, maxS, maxT, nrDiv, altimetry)
     {
-        super(scene, altimetry.length - 1, 0, 15, 0, 15, altimetry);
+        super(scene, altimetry.length - 1, 0, maxS, 0, maxT, altimetry);
 
         this.width = width;
         this.height = height;
@@ -16,7 +16,7 @@ class MyTerrain extends Plane {
     display()
     {
          // update terrain appearance
-        this.currTerrainAppearance = this.scene.terrainAppearancesList[this.scene.terrainAppearance];
+        this.currTerrainAppearance = this.scene.terrainAppearancesList[this.scene.terrainAppearance];            
 
         // update terrain appearance
         this.scene.pushMatrix();

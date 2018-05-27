@@ -62,7 +62,7 @@
                                posX -= TERRAIN_WIDTH / 2;
                                posZ = j * Math.ceil(TERRAIN_HEIGHT / altimetryHeight);
                                posZ -= TERRAIN_HEIGHT / 2;
-                               return new Array(posX , 0, posZ + 2);
+                               return new Array(posX + 1 , 0, posZ + 2);
                         }
                 }
         }
@@ -555,14 +555,14 @@
         var nrDivWidth = this.scene.altimetry.length;
         var nrDivHeight = this.scene.altimetry[0].length;
         
-        var indX = this.pos[0] + deltaX + TERRAIN_WIDTH / 2;
+        var indX = this.pos[0] + TERRAIN_WIDTH / 2;
         indX = Math.floor(indX / TERRAIN_WIDTH * nrDivWidth);
         if (deltaX < 0) 
                 indX--;
-        else if (deltaX > 0) 
+        else if (deltaX > 0)
                 indX++;
         
-        var indZ = this.pos[2] + deltaZ + TERRAIN_HEIGHT/ 2;
+        var indZ = this.pos[2] + TERRAIN_HEIGHT/ 2;
         indZ = Math.floor(indZ / TERRAIN_HEIGHT * nrDivHeight);
         if (deltaZ < 0) 
                 indZ--;
