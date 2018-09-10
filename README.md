@@ -30,5 +30,5 @@ Consequently, access it by typing the following in your browser's address bar:
 
 
 ### Authors
-- Sandro Campos
-- Luís Borges
+- Luís Borges (up201605859@fe.up.pt)
+- Sandro Campos (up201605947@fe.up.pt)
